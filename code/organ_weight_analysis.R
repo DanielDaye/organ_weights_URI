@@ -28,7 +28,9 @@ lemon <- read.csv("data/weight_lemon.csv", header = TRUE) %>%
               stomach = stomach/1000, 
               spleen = spleen_g/1000,
               intestine = intestine/1000,
-              status, stat_2)
+              status, stat_2) %>%
+  # One outlier below 50 - looks like an error with data so removing from analysis
+  filter(length > 50)
 
 makos <- read.csv("data/weight_makos.csv", header = TRUE) %>%
   transmute(species = "Mako_shark", sex, length, 
@@ -36,7 +38,9 @@ makos <- read.csv("data/weight_makos.csv", header = TRUE) %>%
             heart, liver, stomach, intestine, pancreas, spleen,
             rectal = rectal_gland, 
             ovary, testes,
-            epi = epi_organ)
+            epi = epi_organ) %>%
+  # Another outlier, so removing ahead of analysis
+  filter(!(length > 225 & body < 100))
 
 save(lemon, file = "data/lemon.RData")
 save(makos, file = "data/makos.RData")
@@ -82,7 +86,7 @@ norm_makos <- makos %>%
             epi = 100*epi/max(epi, na.rm = T))
 
 norm_long_lemon <- norm_lemon %>%
-  gather(org, weight, c(body:intestine))%>%
+  gather(org, weight, c(body:spleen))%>%
   drop_na()
 norm_long_makos <- norm_makos %>%
   gather(org, weight, c(body:epi)) %>%
@@ -185,7 +189,7 @@ b <- names(norm_long_lemon)
 
 lemon_nrm_pow <- mle2(weight ~ dgamma(shape = (a*(length/100)^b)/theta, scale = theta),
                       start = list(a = 10, b = 2.5, theta = 5),
-                      data = norm_long_lemon,
+                      data = norm_long_lemon %>% filter(org != "brain"),
                       parameters = list(a~org, b~org, theta~org),
                       control = list(maxit = 50000),
                       
@@ -198,7 +202,7 @@ hist(residuals(lemon_nrm_pow), main = NULL, xlab = 'Residual')
 
 lemon_nrm_lin <- mle2(log(weight) ~ dnorm(mean = (a+b*log(length)), sd = k),
                       start = list(a = 10, b = 2.5, k = 2),
-                      data = norm_long_lemon,
+                      data = norm_long_lemon %>% filter(org != "brain"),
                       parameters = list(a~org, b~org, k~org),
                       control = list(maxit = 50000))
 summary(lemon_nrm_lin)
