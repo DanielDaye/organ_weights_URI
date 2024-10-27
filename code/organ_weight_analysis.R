@@ -139,6 +139,8 @@ mako_nrm_lin <- mle2(log(weight) ~ dnorm(mean = (a+b*log(length)), sd = k),
                      control = list(maxit = 50000))
 summary(mako_nrm_lin)
 
+save(mako_nrm_lin, file = "models/mako_nrm_lin.RData")
+save(mako_nrm_pow, file = "models/mako_nrm_pow.RData")
 
 ## Linear & Power Model Plots ----
 # ylim had to be normalized to a 0-100 scale
@@ -251,4 +253,5 @@ abline(coef = c(0,3.01-.39), lwd = 2, col = rain[4]) # spleen
 abline(coef = c(0,3.01+.30), lwd = 2, col = rain[5]) # intestine
 box(which = 'plot')
 
-
+save(lemon_nrm_lin, file = "models/lemon_nrm_lin.RData")
+save(lemon_nrm_pow, file = "models/lemon_nrm_pow.RData")
